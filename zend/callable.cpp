@@ -105,7 +105,7 @@ void Callable::initialize(zend_function_entry *entry, const char *classname, int
         //          the struct and slices off the last element, because the num_args
         //          is incorrect in their view. another place to put this may be
         //          hiding it behind the fname
-       // _argv[_argc + 1].type = reinterpret_cast<zend_type>(this);
+        // _argv[_argc + 1].type = reinterpret_cast<zend_type>(this);
 #endif
 
         // we use our own invoke method, which does a lookup
@@ -157,6 +157,10 @@ void Callable::initialize(zend_internal_function_info *info, const char *classna
     info->_is_variadic = false;
     info->type = ZEND_TYPE_ENCODE((int)_return, true);
 #endif
+#if PHP_VERSION_ID >= 80000
+    info->type = (zend_type) ZEND_TYPE_INIT_CODE((int)_return, true, 0);
+#endif
+
 #endif
 }
 

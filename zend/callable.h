@@ -209,13 +209,14 @@ protected:
             case Type::Float:       info->type = (zend_type) ZEND_TYPE_INIT_CODE(IS_DOUBLE, arg.allowNull(), 0);    break;  // floating-point values welcome too
             case Type::String:      info->type = (zend_type) ZEND_TYPE_INIT_CODE(IS_STRING, arg.allowNull(), 0);    break;  // accept strings, should auto-cast objects with __toString as well
             case Type::Array:       info->type = (zend_type) ZEND_TYPE_INIT_CODE(IS_ARRAY, arg.allowNull(), 0);     break;  // array of anything (individual members cannot be restricted)
-            case Type::Object:
-                info->type = (zend_type) ZEND_TYPE_INIT_CODE(IS_OBJECT, arg.allowNull(), 0);
-                if (arg.classname()) info->name = arg.encoded();
+            case Type::Object:  // if there is a classname and the argument is not nullable, it's simply the classname
+                // info->type = (zend_type) ZEND_TYPE_INIT_CODE(IS_OBJECT, arg.allowNull(), 0);
+                // if (arg.classname()) info->name = arg.encoded();
+                if (!arg.classname()) info->type = (zend_type) ZEND_TYPE_INIT_CODE(IS_OBJECT, arg.allowNull(), 0);
+                else info->name = arg.encoded();
                 break;
             case Type::Callable:    info->type = (zend_type) ZEND_TYPE_INIT_CODE(IS_CALLABLE, arg.allowNull(), 0);  break;  // anything that can be invoke
-
-           default:                info->type = ZEND_TYPE_INIT_CODE(IS_UNDEF, 0, 0);     break;  // if not specified we allow anything
+            default:                info->type = ZEND_TYPE_INIT_CODE(IS_UNDEF, arg.allowNull(), 0);     break;  // if not specified we allow anything
 #else
             case Type::Undefined:   info->type = ZEND_TYPE_ENCODE(IS_UNDEF, arg.allowNull());     break;  // undefined means we'll accept any type
             case Type::Null:        info->type = ZEND_TYPE_ENCODE(IS_UNDEF, arg.allowNull());     break;  // this is likely an error, what good would accepting NULL be? accept anything
@@ -243,6 +244,8 @@ protected:
 
         // whether or not to pass the argument by reference
         info->pass_by_reference = arg.byReference();
+#endif
+#if PHP_VERSION_ID >= 80000
 #endif
     }
 
